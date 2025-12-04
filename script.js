@@ -2,7 +2,7 @@
 const STORAGE = {
   EXPENSES: "accounting_pro_expenses_v1",
   BUDGET: "accounting_pro_budget_v1",
-  PROFILE: "accounting_pro_profile_v1",
+  PROFILE: "accounting_pro_profile_v2", // v2 para incluir preguntas
   LANGUAGE: "accounting_pro_language_v1",
   LOGGED_IN: "accounting_pro_logged_in_v1",
 };
@@ -13,6 +13,10 @@ let budgetItems = [];
 let profile = null;
 let currentLanguage = "es";
 let isLoggedIn = false;
+
+// Reset password state
+let resetStage = 0;
+let resetRandomQuestion = null;
 
 // --- TEXTOS PARA I18N ---
 const i18nTexts = {
@@ -33,6 +37,9 @@ const i18nTexts = {
     dashboardHintTitle: "Consejo rápido",
     dashboardHintText:
       "Registra tus gastos todos los días y revisa tu presupuesto fijo una vez al mes.",
+    dashboardChartTitle: "Resumen visual del mes",
+    dashboardChartSubtitle:
+      "Ingresos, gastos y presupuesto fijo representados de forma gráfica.",
     expensesTitle: "Gastos diarios",
     expensesSubtitle:
       "Lleva un registro detallado de tus gastos e ingresos día a día.",
@@ -119,6 +126,9 @@ const i18nTexts = {
     dashboardHintTitle: "Quick tip",
     dashboardHintText:
       "Record your expenses every day and review your fixed budget once a month.",
+    dashboardChartTitle: "Monthly visual summary",
+    dashboardChartSubtitle:
+      "Income, expenses and fixed budget represented in a simple chart.",
     expensesTitle: "Daily expenses",
     expensesSubtitle:
       "Keep a detailed record of your daily expenses and income.",
@@ -240,6 +250,7 @@ function applyLanguage(lang) {
   renderExpensesTable();
   renderBudgetTable();
   renderProfileSummary();
+  renderDashboardChart();
   saveToStorage();
 }
 
@@ -251,7 +262,7 @@ function showApp() {
   appScreen.classList.remove("hidden");
   isLoggedIn = true;
   saveToStorage();
-  renderDashboard();
+  renderDashboardChart();
 }
 
 function showAuthStart() {
@@ -259,7 +270,7 @@ function showAuthStart() {
   const appScreen = document.getElementById("app-screen");
   appScreen.classList.add("hidden");
   authScreen.classList.remove("hidden");
-  authScreen.classList.remove("mode-login", "mode-signup");
+  authScreen.classList.remove("mode-login", "mode-signup", "mode-reset");
   authScreen.classList.add("mode-start");
   isLoggedIn = false;
   saveToStorage();
@@ -283,8 +294,8 @@ function setupTabs() {
   });
 }
 
-// --- DASHBOARD ---
-function renderDashboard() {
+// --- DASHBOARD: CÁLCULOS + GRÁFICA ---
+function getDashboardNumbers() {
   const now = new Date();
   const month = now.getMonth();
   const year = now.getFullYear();
@@ -302,17 +313,65 @@ function renderDashboard() {
   });
 
   const budgetTotal = budgetItems.reduce((acc, item) => acc + item.amount, 0);
-  const balance = incomeMonth - expenseMonth - budgetTotal;
+  return { incomeMonth, expenseMonth, budgetTotal };
+}
 
-  document.getElementById("dash-income").textContent = formatCurrency(incomeMonth);
-  document.getElementById("dash-expenses").textContent = formatCurrency(expenseMonth);
-  document.getElementById("dash-budget").textContent = formatCurrency(budgetTotal);
+function renderDashboardChart() {
+  const canvas = document.getElementById("dashboard-chart");
+  if (!canvas) return;
 
-  const balanceEl = document.getElementById("dash-balance");
-  balanceEl.textContent = formatCurrency(balance);
-  balanceEl.classList.remove("positive", "negative");
-  if (balance > 0) balanceEl.classList.add("positive");
-  if (balance < 0) balanceEl.classList.add("negative");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const { incomeMonth, expenseMonth, budgetTotal } = getDashboardNumbers();
+
+  const values = [incomeMonth, expenseMonth, budgetTotal];
+  const labels =
+    currentLanguage === "es"
+      ? ["Ingresos", "Gastos", "Presupuesto"]
+      : ["Income", "Expenses", "Budget"];
+
+  const colors = ["#43a047", "#e53935", "#fb8c00"];
+
+  const maxValue = Math.max(...values, 1);
+  const padding = 30;
+  const baseY = canvas.height - padding;
+  const chartHeight = canvas.height - padding * 2;
+  const barWidth = 60;
+  const gap = 40;
+  const startX =
+    (canvas.width - (values.length * barWidth + (values.length - 1) * gap)) /
+    2;
+
+  ctx.font = "12px system-ui";
+  ctx.textAlign = "center";
+
+  values.forEach((val, index) => {
+    const x = startX + index * (barWidth + gap);
+    const barHeight = (val / maxValue) * chartHeight;
+    const y = baseY - barHeight;
+
+    // Barra
+    ctx.fillStyle = colors[index];
+    ctx.beginPath();
+    ctx.roundRect(x, y, barWidth, barHeight, 8);
+    ctx.fill();
+
+    // Valor numérico encima
+    ctx.fillStyle = "#37474f";
+    ctx.fillText(formatCurrency(val), x + barWidth / 2, y - 6);
+
+    // Etiqueta debajo
+    ctx.fillStyle = "#546e7a";
+    ctx.fillText(labels[index], x + barWidth / 2, baseY + 16);
+  });
+
+  // Línea base
+  ctx.strokeStyle = "#cfd8dc";
+  ctx.beginPath();
+  ctx.moveTo(padding, baseY);
+  ctx.lineTo(canvas.width - padding, baseY);
+  ctx.stroke();
 }
 
 // --- GASTOS DIARIOS ---
@@ -377,7 +436,7 @@ function deleteExpense(id) {
   expenses = expenses.filter((e) => e.id !== id);
   saveToStorage();
   renderExpensesTable();
-  renderDashboard();
+  renderDashboardChart();
 }
 
 function setupExpensesForm() {
@@ -414,7 +473,7 @@ function setupExpensesForm() {
     form.reset();
     saveToStorage();
     renderExpensesTable();
-    renderDashboard();
+    renderDashboardChart();
   });
 
   clearBtn.addEventListener("click", () => {
@@ -429,7 +488,7 @@ function setupExpensesForm() {
       expenses = [];
       saveToStorage();
       renderExpensesTable();
-      renderDashboard();
+      renderDashboardChart();
     }
   });
 }
@@ -482,13 +541,13 @@ function renderBudgetTable() {
   });
 
   totalEl.textContent = formatCurrency(total);
+  renderDashboardChart();
 }
 
 function deleteBudgetItem(id) {
   budgetItems = budgetItems.filter((b) => b.id !== id);
   saveToStorage();
   renderBudgetTable();
-  renderDashboard();
 }
 
 function setupBudgetForm() {
@@ -498,7 +557,9 @@ function setupBudgetForm() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const name = document.getElementById("bud-name").value.trim();
-    const amountValue = parseFloat(document.getElementById("bud-amount").value);
+    const amountValue = parseFloat(
+      document.getElementById("bud-amount").value
+    );
 
     if (!name || isNaN(amountValue) || amountValue <= 0) {
       alert(
@@ -519,7 +580,6 @@ function setupBudgetForm() {
     form.reset();
     saveToStorage();
     renderBudgetTable();
-    renderDashboard();
   });
 
   clearBtn.addEventListener("click", () => {
@@ -534,7 +594,6 @@ function setupBudgetForm() {
       budgetItems = [];
       saveToStorage();
       renderBudgetTable();
-      renderDashboard();
     }
   });
 }
@@ -596,7 +655,20 @@ function setupProfileForm() {
       return;
     }
 
-    profile = { name, email, password, birth, occupation, country };
+    // Mantener preguntas anteriores si ya existen
+    const securityQuestions = profile?.securityQuestions || [];
+
+    profile = {
+      ...(profile || {}),
+      name,
+      email,
+      password,
+      birth,
+      occupation,
+      country,
+      securityQuestions,
+    };
+
     saveToStorage();
     renderProfileSummary();
 
@@ -608,7 +680,11 @@ function setupProfileForm() {
   });
 }
 
-// --- AUTENTICACIÓN: SIGN UP + LOGIN + LOGOUT ---
+// --- AUTENTICACIÓN: SIGN UP + LOGIN + RESET + LOGOUT ---
+function normalizeAnswer(str) {
+  return (str || "").trim().toLowerCase();
+}
+
 function setupAuth() {
   const authScreen = document.getElementById("auth-screen");
 
@@ -616,14 +692,16 @@ function setupAuth() {
   const btnShowSignup = document.getElementById("btn-show-signup");
   const btnBackLogin = document.getElementById("btn-back-from-login");
   const btnBackSignup = document.getElementById("btn-back-from-signup");
+  const btnBackReset = document.getElementById("btn-back-from-reset");
+  const btnForgot = document.getElementById("btn-forgot");
 
   btnShowLogin.addEventListener("click", () => {
-    authScreen.classList.remove("mode-start", "mode-signup");
+    authScreen.classList.remove("mode-start", "mode-signup", "mode-reset");
     authScreen.classList.add("mode-login");
   });
 
   btnShowSignup.addEventListener("click", () => {
-    authScreen.classList.remove("mode-start", "mode-login");
+    authScreen.classList.remove("mode-start", "mode-login", "mode-reset");
     authScreen.classList.add("mode-signup");
   });
 
@@ -635,6 +713,26 @@ function setupAuth() {
   btnBackSignup.addEventListener("click", () => {
     authScreen.classList.remove("mode-signup");
     authScreen.classList.add("mode-start");
+  });
+
+  btnForgot.addEventListener("click", () => {
+    authScreen.classList.remove("mode-start", "mode-login", "mode-signup");
+    authScreen.classList.add("mode-reset");
+    resetStage = 0;
+    resetRandomQuestion = null;
+    document.getElementById("reset-form").reset();
+    document
+      .getElementById("reset-question-block")
+      .classList.add("hidden");
+    document
+      .getElementById("reset-newpass-block")
+      .classList.add("hidden");
+    document.getElementById("reset-submit-btn").textContent = "Continuar";
+  });
+
+  btnBackReset.addEventListener("click", () => {
+    authScreen.classList.remove("mode-reset");
+    authScreen.classList.add("mode-login");
   });
 
   // SIGN UP
@@ -649,6 +747,10 @@ function setupAuth() {
     const occupation = document.getElementById("su-occupation").value.trim();
     const country = document.getElementById("su-country").value.trim();
 
+    const sec1 = document.getElementById("su-sec1").value;
+    const sec2 = document.getElementById("su-sec2").value;
+    const sec3 = document.getElementById("su-sec3").value;
+
     if (!name || !email || !password || password.length < 6) {
       alert(
         currentLanguage === "es"
@@ -658,12 +760,38 @@ function setupAuth() {
       return;
     }
 
-    profile = { name, email, password, birth, occupation, country };
+    const securityQuestions = [
+      {
+        id: 1,
+        question: "¿Cómo se llama tu mejor amigo de la infancia?",
+        answer: normalizeAnswer(sec1),
+      },
+      {
+        id: 2,
+        question: "¿En qué ciudad naciste?",
+        answer: normalizeAnswer(sec2),
+      },
+      {
+        id: 3,
+        question: "¿Cuál es el nombre de tu primera mascota?",
+        answer: normalizeAnswer(sec3),
+      },
+    ];
+
+    profile = {
+      name,
+      email,
+      password,
+      birth,
+      occupation,
+      country,
+      securityQuestions,
+    };
     isLoggedIn = true;
     saveToStorage();
     showApp();
     renderProfileSummary();
-    renderDashboard();
+    renderDashboardChart();
   });
 
   // LOGIN
@@ -687,7 +815,113 @@ function setupAuth() {
     saveToStorage();
     showApp();
     renderProfileSummary();
-    renderDashboard();
+    renderDashboardChart();
+  });
+
+  // RESET PASSWORD
+  const resetForm = document.getElementById("reset-form");
+  const questionBlock = document.getElementById("reset-question-block");
+  const questionText = document.getElementById("reset-question-text");
+  const newpassBlock = document.getElementById("reset-newpass-block");
+  const resetBtn = document.getElementById("reset-submit-btn");
+
+  resetForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("reset-email").value.trim();
+
+    if (resetStage === 0) {
+      if (!profile || profile.email !== email) {
+        alert(
+          currentLanguage === "es"
+            ? "No se encontró un usuario con ese email."
+            : "No user found with that email."
+        );
+        return;
+      }
+
+      const questions = profile.securityQuestions || [];
+      if (!questions.length) {
+        alert(
+          currentLanguage === "es"
+            ? "Este usuario no tiene preguntas de seguridad configuradas."
+            : "This user has no security questions configured."
+        );
+        return;
+      }
+
+      const index = Math.floor(Math.random() * questions.length);
+      resetRandomQuestion = questions[index];
+
+      questionText.textContent = resetRandomQuestion.question;
+      questionBlock.classList.remove("hidden");
+      resetStage = 1;
+      resetBtn.textContent =
+        currentLanguage === "es" ? "Verificar respuesta" : "Verify answer";
+      return;
+    }
+
+    if (resetStage === 1) {
+      const userAnswer = normalizeAnswer(
+        document.getElementById("reset-answer").value
+      );
+
+      if (!resetRandomQuestion) return;
+
+      if (userAnswer !== resetRandomQuestion.answer) {
+        alert(
+          currentLanguage === "es"
+            ? "Respuesta incorrecta. Inténtalo de nuevo."
+            : "Incorrect answer. Please try again."
+        );
+        return;
+      }
+
+      newpassBlock.classList.remove("hidden");
+      resetStage = 2;
+      resetBtn.textContent =
+        currentLanguage === "es"
+          ? "Guardar nueva contraseña"
+          : "Save new password";
+      return;
+    }
+
+    if (resetStage === 2) {
+      const newPass = document
+        .getElementById("reset-newpass")
+        .value.trim();
+      const newPass2 = document
+        .getElementById("reset-newpass2")
+        .value.trim();
+
+      if (!newPass || newPass.length < 6 || newPass !== newPass2) {
+        alert(
+          currentLanguage === "es"
+            ? "Verifica que la contraseña tenga al menos 6 caracteres y que ambas coincidan."
+            : "Make sure the password has at least 6 characters and both match."
+        );
+        return;
+      }
+
+      profile.password = newPass;
+      saveToStorage();
+
+      alert(
+        currentLanguage === "es"
+          ? "Contraseña actualizada correctamente. Ahora puedes iniciar sesión."
+          : "Password updated successfully. You can now log in."
+      );
+
+      resetStage = 0;
+      resetRandomQuestion = null;
+      resetForm.reset();
+      questionBlock.classList.add("hidden");
+      newpassBlock.classList.add("hidden");
+      resetBtn.textContent = "Continuar";
+
+      authScreen.classList.remove("mode-reset");
+      authScreen.classList.add("mode-login");
+    }
   });
 
   // LOGOUT
@@ -717,7 +951,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderExpensesTable();
   renderBudgetTable();
   renderProfileSummary();
-  renderDashboard();
+  renderDashboardChart();
 
   if (isLoggedIn && profile) {
     showApp();

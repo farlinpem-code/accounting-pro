@@ -48,6 +48,10 @@
           <input type="password" id="login-password" placeholder="******" required />
 
           <button type="submit" class="btn-primary full-width">Entrar</button>
+
+          <button type="button" id="btn-forgot" class="link-button forgot-link">
+            ¿Olvidaste la contraseña?
+          </button>
         </form>
         <button id="btn-back-from-login" class="link-button back-link">
           ← Volver
@@ -90,6 +94,21 @@
           <label for="su-country">País / Ciudad</label>
           <input type="text" id="su-country" placeholder="Ej: Elizabeth, NJ - USA" />
 
+          <hr class="auth-divider" />
+
+          <p class="auth-subtitle small">
+            Preguntas de seguridad (te ayudarán a recuperar tu contraseña):
+          </p>
+
+          <label for="su-sec1">¿Cómo se llama tu mejor amigo de la infancia?</label>
+          <input type="text" id="su-sec1" placeholder="Respuesta" required />
+
+          <label for="su-sec2">¿En qué ciudad naciste?</label>
+          <input type="text" id="su-sec2" placeholder="Respuesta" required />
+
+          <label for="su-sec3">¿Cuál es el nombre de tu primera mascota?</label>
+          <input type="text" id="su-sec3" placeholder="Respuesta" required />
+
           <button type="submit" class="btn-primary full-width">
             Crear cuenta
           </button>
@@ -99,9 +118,52 @@
         </button>
       </div>
     </div>
+
+    <!-- Pantalla RESET PASSWORD -->
+    <div class="auth-inner auth-reset">
+      <div class="auth-card">
+        <div class="auth-logo-wrap small">
+          <div class="smart-logo">
+            <div class="smart-circle">
+              <span class="smart-symbol">$</span>
+            </div>
+            <div class="smart-orbit"></div>
+          </div>
+          <div class="auth-app-name">ACCOUNTING PRO</div>
+        </div>
+        <h2>Restablecer contraseña</h2>
+        <p class="auth-subtitle">
+          Primero ingresa tu email. Luego responde una de tus preguntas de seguridad.
+        </p>
+        <form id="reset-form" class="auth-form">
+          <label for="reset-email">Email</label>
+          <input type="email" id="reset-email" placeholder="tu@email.com" required />
+
+          <div id="reset-question-block" class="hidden">
+            <p id="reset-question-text" class="auth-subtitle"></p>
+            <input type="text" id="reset-answer" placeholder="Tu respuesta" />
+          </div>
+
+          <div id="reset-newpass-block" class="hidden">
+            <label for="reset-newpass">Nueva contraseña</label>
+            <input type="password" id="reset-newpass" placeholder="Mínimo 6 caracteres" />
+
+            <label for="reset-newpass2">Confirmar contraseña</label>
+            <input type="password" id="reset-newpass2" placeholder="Repite la contraseña" />
+          </div>
+
+          <button type="submit" class="btn-primary full-width" id="reset-submit-btn">
+            Continuar
+          </button>
+        </form>
+        <button id="btn-back-from-reset" class="link-button back-link">
+          ← Volver
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- APP PRINCIPAL (se muestra solo después de log in / sign up) -->
+  <!-- APP PRINCIPAL (solo después de log in / sign up) -->
   <div id="app-screen" class="hidden">
     <header class="topbar">
       <div class="branding">
@@ -123,290 +185,285 @@
       </div>
     </header>
 
-    <nav class="tabs">
-      <button class="tab-button active" data-tab="dashboard">
-        <span class="icon">📊</span>
-        <span data-i18n="tabDashboard">Resumen</span>
-      </button>
-      <button class="tab-button" data-tab="expenses">
-        <span class="icon">🧾</span>
-        <span data-i18n="tabExpenses">Gastos diarios</span>
-      </button>
-      <button class="tab-button" data-tab="budget">
-        <span class="icon">📅</span>
-        <span data-i18n="tabBudget">Presupuesto mensual</span>
-      </button>
-      <button class="tab-button" data-tab="profile">
-        <span class="icon">👤</span>
-        <span data-i18n="tabProfile">Perfil</span>
-      </button>
-    </nav>
+    <div class="app-layout">
+      <!-- Menú vertical a la izquierda -->
+      <nav class="tabs side-nav">
+        <button class="tab-button active" data-tab="dashboard">
+          <span class="icon">📊</span>
+          <span data-i18n="tabDashboard">Resumen</span>
+        </button>
+        <button class="tab-button" data-tab="expenses">
+          <span class="icon">🧾</span>
+          <span data-i18n="tabExpenses">Gastos diarios</span>
+        </button>
+        <button class="tab-button" data-tab="budget">
+          <span class="icon">📅</span>
+          <span data-i18n="tabBudget">Presupuesto mensual</span>
+        </button>
+        <button class="tab-button" data-tab="profile">
+          <span class="icon">👤</span>
+          <span data-i18n="tabProfile">Perfil</span>
+        </button>
+      </nav>
 
-    <main class="main-container">
-      <!-- DASHBOARD -->
-      <section id="dashboard" class="tab-content active">
-        <h2 data-i18n="dashboardTitle">Resumen general</h2>
-        <p class="section-subtitle" data-i18n="dashboardSubtitle">
-          Un vistazo rápido a tus finanzas actuales.
-        </p>
-
-        <section class="summary">
-          <div class="card summary-card">
-            <h3 data-i18n="summaryIncome">Ingresos del mes</h3>
-            <p id="dash-income" class="amount positive">$0.00</p>
-          </div>
-          <div class="card summary-card">
-            <h3 data-i18n="summaryExpenses">Gastos del mes</h3>
-            <p id="dash-expenses" class="amount negative">$0.00</p>
-          </div>
-          <div class="card summary-card">
-            <h3 data-i18n="summaryBalance">Balance</h3>
-            <p id="dash-balance" class="amount">$0.00</p>
-          </div>
-          <div class="card summary-card">
-            <h3 data-i18n="summaryBudget">Presupuesto fijo</h3>
-            <p id="dash-budget" class="amount">$0.00</p>
-          </div>
-        </section>
-
-        <section class="card info-card">
-          <h3 data-i18n="dashboardHintTitle">Consejo rápido</h3>
-          <p data-i18n="dashboardHintText">
-            Registra tus gastos todos los días y revisa tu presupuesto fijo una vez al mes.
+      <!-- Contenido principal a la derecha -->
+      <main class="main-container">
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="tab-content active">
+          <h2 data-i18n="dashboardTitle">Resumen general</h2>
+          <p class="section-subtitle" data-i18n="dashboardSubtitle">
+            Un vistazo rápido a tus finanzas actuales.
           </p>
-        </section>
-      </section>
 
-      <!-- GASTOS DIARIOS -->
-      <section id="expenses" class="tab-content">
-        <h2 data-i18n="expensesTitle">Gastos diarios</h2>
-        <p class="section-subtitle" data-i18n="expensesSubtitle">
-          Lleva un registro detallado de tus gastos e ingresos día a día.
-        </p>
-
-        <section class="grid">
-          <section class="card form-card">
-            <h3 data-i18n="expensesFormTitle">Agregar movimiento</h3>
-            <form id="expense-form">
-              <label for="exp-date" data-i18n="fieldDate">Fecha</label>
-              <input type="date" id="exp-date" required />
-
-              <label for="exp-description" data-i18n="fieldDescription">Descripción</label>
-              <input
-                type="text"
-                id="exp-description"
-                data-i18n-placeholder="placeholderDescription"
-                placeholder="Ej: Gasolina, comida, peaje"
-                required
-              />
-
-              <label for="exp-category" data-i18n="fieldCategory">Categoría</label>
-              <input
-                type="text"
-                id="exp-category"
-                data-i18n-placeholder="placeholderCategory"
-                placeholder="Ej: Transporte, Comida"
-              />
-
-              <label for="exp-type" data-i18n="fieldType">Tipo</label>
-              <select id="exp-type" required>
-                <option value="" data-i18n="fieldTypeSelect">Selecciona...</option>
-                <option value="income" data-i18n="fieldTypeIncome">Ingreso</option>
-                <option value="expense" data-i18n="fieldTypeExpense">Gasto</option>
-              </select>
-
-              <label for="exp-amount" data-i18n="fieldAmount">Monto</label>
-              <input
-                type="number"
-                id="exp-amount"
-                step="0.01"
-                min="0.01"
-                data-i18n-placeholder="placeholderAmount"
-                placeholder="Ej: 150.75"
-                required
-              />
-
-              <button type="submit" class="btn-primary full-width" data-i18n="btnSaveMovement">
-                Guardar movimiento
-              </button>
-            </form>
-            <button
-              id="clear-expenses"
-              class="btn-secondary full-width danger"
-              data-i18n="btnClearExpenses"
-            >
-              Borrar todos los movimientos
-            </button>
-          </section>
-
-          <section class="card table-card">
-            <h3 data-i18n="expensesListTitle">Historial</h3>
-            <p class="small-text" data-i18n="expensesStorageNote">
-              Los datos se guardan solo en este dispositivo (navegador).
+          <section class="card chart-card">
+            <h3 data-i18n="dashboardChartTitle">Resumen visual del mes</h3>
+            <p class="small-text" data-i18n="dashboardChartSubtitle">
+              Ingresos, gastos y presupuesto fijo representados de forma gráfica.
             </p>
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th data-i18n="colDate">Fecha</th>
-                    <th data-i18n="colDescription">Descripción</th>
-                    <th data-i18n="colCategory">Categoría</th>
-                    <th data-i18n="colType">Tipo</th>
-                    <th data-i18n="colAmount">Monto</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="expenses-body"></tbody>
-              </table>
+            <div class="chart-wrapper">
+              <canvas id="dashboard-chart" width="420" height="220"></canvas>
             </div>
           </section>
-        </section>
-      </section>
 
-      <!-- PRESUPUESTO -->
-      <section id="budget" class="tab-content">
-        <h2 data-i18n="budgetTitle">Presupuesto mensual</h2>
-        <p class="section-subtitle" data-i18n="budgetSubtitle">
-          Define tus gastos fijos para tener claridad de cuánto necesitas cada mes.
-        </p>
-
-        <section class="grid">
-          <section class="card form-card">
-            <h3 data-i18n="budgetFormTitle">Agregar gasto fijo</h3>
-            <form id="budget-form">
-              <label for="bud-name" data-i18n="fieldBudgetName">Nombre del gasto</label>
-              <input
-                type="text"
-                id="bud-name"
-                data-i18n-placeholder="placeholderBudgetName"
-                placeholder="Ej: Renta, Seguro del camión"
-                required
-              />
-
-              <label for="bud-amount" data-i18n="fieldBudgetAmount">Monto mensual</label>
-              <input
-                type="number"
-                id="bud-amount"
-                step="0.01"
-                min="0.01"
-                data-i18n-placeholder="placeholderBudgetAmount"
-                placeholder="Ej: 800.00"
-                required
-              />
-
-              <button type="submit" class="btn-primary full-width" data-i18n="btnAddBudgetItem">
-                Agregar al presupuesto
-              </button>
-            </form>
-            <button
-              id="clear-budget"
-              class="btn-secondary full-width danger"
-              data-i18n="btnClearBudget"
-            >
-              Borrar presupuesto
-            </button>
-          </section>
-
-          <section class="card table-card">
-            <h3 data-i18n="budgetListTitle">Gastos fijos</h3>
-            <p class="small-text" data-i18n="budgetTotalLabel">
-              Total del presupuesto mensual:
-            </p>
-            <p id="budget-total" class="amount">$0.00</p>
-
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th data-i18n="colBudgetName">Gasto</th>
-                    <th data-i18n="colBudgetAmount">Monto</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="budget-body"></tbody>
-              </table>
-            </div>
-          </section>
-        </section>
-      </section>
-
-      <!-- PERFIL -->
-      <section id="profile" class="tab-content">
-        <h2 data-i18n="profileTitle">Perfil y registro</h2>
-        <p class="section-subtitle" data-i18n="profileSubtitle">
-          Registra tus datos para personalizar tu experiencia en Accounting Pro.
-        </p>
-
-        <section class="grid">
-          <section class="card form-card">
-            <h3 data-i18n="profileFormTitle">Datos personales</h3>
-            <form id="profile-form">
-              <label for="prof-name" data-i18n="fieldName">Nombre completo</label>
-              <input
-                type="text"
-                id="prof-name"
-                data-i18n-placeholder="placeholderName"
-                placeholder="Ej: Farlin Encarnación"
-                required
-              />
-
-              <label for="prof-email" data-i18n="fieldEmail">Correo electrónico</label>
-              <input
-                type="email"
-                id="prof-email"
-                data-i18n-placeholder="placeholderEmail"
-                placeholder="ejemplo@email.com"
-                required
-              />
-
-              <label for="prof-password" data-i18n="fieldPassword">Contraseña</label>
-              <input
-                type="password"
-                id="prof-password"
-                data-i18n-placeholder="placeholderPassword"
-                placeholder="Mínimo 6 caracteres"
-                required
-              />
-
-              <label for="prof-birth" data-i18n="fieldBirthdate">Fecha de nacimiento</label>
-              <input type="date" id="prof-birth" required />
-
-              <label for="prof-occupation" data-i18n="fieldOccupation">Ocupación</label>
-              <input
-                type="text"
-                id="prof-occupation"
-                data-i18n-placeholder="placeholderOccupation"
-                placeholder="Ej: Truck driver, emprendedor"
-              />
-
-              <label for="prof-country" data-i18n="fieldCountry">País / Ciudad</label>
-              <input
-                type="text"
-                id="prof-country"
-                data-i18n-placeholder="placeholderCountry"
-                placeholder="Ej: Elizabeth, NJ - USA"
-              />
-
-              <button type="submit" class="btn-primary full-width" data-i18n="btnSaveProfile">
-                Guardar perfil
-              </button>
-            </form>
-            <p class="small-text" data-i18n="profileSecurityNote">
-              Esta versión guarda tus datos solo en este dispositivo. No se envían a ningún servidor.
+          <section class="card info-card">
+            <h3 data-i18n="dashboardHintTitle">Consejo rápido</h3>
+            <p data-i18n="dashboardHintText">
+              Registra tus gastos todos los días y revisa tu presupuesto fijo una vez al mes.
             </p>
           </section>
+        </section>
 
-          <section class="card profile-card">
-            <h3 data-i18n="profileSummaryTitle">Resumen de tu perfil</h3>
-            <div id="profile-summary" class="profile-summary">
-              <p data-i18n="profileEmpty">
-                Aún no has guardado tu perfil. Completa el formulario para verlo aquí.
+        <!-- GASTOS DIARIOS -->
+        <section id="expenses" class="tab-content">
+          <h2 data-i18n="expensesTitle">Gastos diarios</h2>
+          <p class="section-subtitle" data-i18n="expensesSubtitle">
+            Lleva un registro detallado de tus gastos e ingresos día a día.
+          </p>
+
+          <section class="grid">
+            <section class="card form-card">
+              <h3 data-i18n="expensesFormTitle">Agregar movimiento</h3>
+              <form id="expense-form">
+                <label for="exp-date" data-i18n="fieldDate">Fecha</label>
+                <input type="date" id="exp-date" required />
+
+                <label for="exp-description" data-i18n="fieldDescription">Descripción</label>
+                <input
+                  type="text"
+                  id="exp-description"
+                  data-i18n-placeholder="placeholderDescription"
+                  placeholder="Ej: Gasolina, comida, peaje"
+                  required
+                />
+
+                <label for="exp-category" data-i18n="fieldCategory">Categoría</label>
+                <input
+                  type="text"
+                  id="exp-category"
+                  data-i18n-placeholder="placeholderCategory"
+                  placeholder="Ej: Transporte, Comida"
+                />
+
+                <label for="exp-type" data-i18n="fieldType">Tipo</label>
+                <select id="exp-type" required>
+                  <option value="" data-i18n="fieldTypeSelect">Selecciona...</option>
+                  <option value="income" data-i18n="fieldTypeIncome">Ingreso</option>
+                  <option value="expense" data-i18n="fieldTypeExpense">Gasto</option>
+                </select>
+
+                <label for="exp-amount" data-i18n="fieldAmount">Monto</label>
+                <input
+                  type="number"
+                  id="exp-amount"
+                  step="0.01"
+                  min="0.01"
+                  data-i18n-placeholder="placeholderAmount"
+                  placeholder="Ej: 150.75"
+                  required
+                />
+
+                <button type="submit" class="btn-primary full-width" data-i18n="btnSaveMovement">
+                  Guardar movimiento
+                </button>
+              </form>
+              <button
+                id="clear-expenses"
+                class="btn-secondary full-width danger"
+                data-i18n="btnClearExpenses"
+              >
+                Borrar todos los movimientos
+              </button>
+            </section>
+
+            <section class="card table-card">
+              <h3 data-i18n="expensesListTitle">Historial</h3>
+              <p class="small-text" data-i18n="expensesStorageNote">
+                Los datos se guardan solo en este dispositivo (navegador).
               </p>
-            </div>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th data-i18n="colDate">Fecha</th>
+                      <th data-i18n="colDescription">Descripción</th>
+                      <th data-i18n="colCategory">Categoría</th>
+                      <th data-i18n="colType">Tipo</th>
+                      <th data-i18n="colAmount">Monto</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="expenses-body"></tbody>
+                </table>
+              </div>
+            </section>
           </section>
         </section>
-      </section>
-    </main>
+
+        <!-- PRESUPUESTO -->
+        <section id="budget" class="tab-content">
+          <h2 data-i18n="budgetTitle">Presupuesto mensual</h2>
+          <p class="section-subtitle" data-i18n="budgetSubtitle">
+            Define tus gastos fijos para tener claridad de cuánto necesitas cada mes.
+          </p>
+
+          <section class="grid">
+            <section class="card form-card">
+              <h3 data-i18n="budgetFormTitle">Agregar gasto fijo</h3>
+              <form id="budget-form">
+                <label for="bud-name" data-i18n="fieldBudgetName">Nombre del gasto</label>
+                <input
+                  type="text"
+                  id="bud-name"
+                  data-i18n-placeholder="placeholderBudgetName"
+                  placeholder="Ej: Renta, Seguro del camión"
+                  required
+                />
+
+                <label for="bud-amount" data-i18n="fieldBudgetAmount">Monto mensual</label>
+                <input
+                  type="number"
+                  id="bud-amount"
+                  step="0.01"
+                  min="0.01"
+                  data-i18n-placeholder="placeholderBudgetAmount"
+                  placeholder="Ej: 800.00"
+                  required
+                />
+
+                <button type="submit" class="btn-primary full-width" data-i18n="btnAddBudgetItem">
+                  Agregar al presupuesto
+                </button>
+              </form>
+              <button
+                id="clear-budget"
+                class="btn-secondary full-width danger"
+                data-i18n="btnClearBudget"
+              >
+                Borrar presupuesto
+              </button>
+            </section>
+
+            <section class="card table-card">
+              <h3 data-i18n="budgetListTitle">Gastos fijos</h3>
+              <p class="small-text" data-i18n="budgetTotalLabel">
+                Total del presupuesto mensual:
+              </p>
+              <p id="budget-total" class="amount">$0.00</p>
+
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th data-i18n="colBudgetName">Gasto</th>
+                      <th data-i18n="colBudgetAmount">Monto</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="budget-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+        </section>
+
+        <!-- PERFIL -->
+        <section id="profile" class="tab-content">
+          <h2 data-i18n="profileTitle">Perfil y registro</h2>
+          <p class="section-subtitle" data-i18n="profileSubtitle">
+            Registra tus datos para personalizar tu experiencia en Accounting Pro.
+          </p>
+
+          <section class="grid">
+            <section class="card form-card">
+              <h3 data-i18n="profileFormTitle">Datos personales</h3>
+              <form id="profile-form">
+                <label for="prof-name" data-i18n="fieldName">Nombre completo</label>
+                <input
+                  type="text"
+                  id="prof-name"
+                  data-i18n-placeholder="placeholderName"
+                  placeholder="Ej: Farlin Encarnación"
+                  required
+                />
+
+                <label for="prof-email" data-i18n="fieldEmail">Correo electrónico</label>
+                <input
+                  type="email"
+                  id="prof-email"
+                  data-i18n-placeholder="placeholderEmail"
+                  placeholder="ejemplo@email.com"
+                  required
+                />
+
+                <label for="prof-password" data-i18n="fieldPassword">Contraseña</label>
+                <input
+                  type="password"
+                  id="prof-password"
+                  data-i18n-placeholder="placeholderPassword"
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                />
+
+                <label for="prof-birth" data-i18n="fieldBirthdate">Fecha de nacimiento</label>
+                <input type="date" id="prof-birth" required />
+
+                <label for="prof-occupation" data-i18n="fieldOccupation">Ocupación</label>
+                <input
+                  type="text"
+                  id="prof-occupation"
+                  data-i18n-placeholder="placeholderOccupation"
+                  placeholder="Ej: Truck driver, emprendedor"
+                />
+
+                <label for="prof-country" data-i18n="fieldCountry">País / Ciudad</label>
+                <input
+                  type="text"
+                  id="prof-country"
+                  data-i18n-placeholder="placeholderCountry"
+                  placeholder="Ej: Elizabeth, NJ - USA"
+                />
+
+                <button type="submit" class="btn-primary full-width" data-i18n="btnSaveProfile">
+                  Guardar perfil
+                </button>
+              </form>
+              <p class="small-text" data-i18n="profileSecurityNote">
+                Esta versión guarda tus datos solo en este dispositivo. No se envían a ningún servidor.
+              </p>
+            </section>
+
+            <section class="card profile-card">
+              <h3 data-i18n="profileSummaryTitle">Resumen de tu perfil</h3>
+              <div id="profile-summary" class="profile-summary">
+                <p data-i18n="profileEmpty">
+                  Aún no has guardado tu perfil. Completa el formulario para verlo aquí.
+                </p>
+              </div>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
 
     <footer>
       <p>© 2025 Accounting Pro – Eleva tus finanzas al próximo nivel.</p>
